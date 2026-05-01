@@ -323,10 +323,9 @@
 
   .event-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);margin:24px 0}
 
-  .event-speaker{display:flex;align-items:center;gap:12px;padding:14px 0}
-  .speaker-photo{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.18);flex:none}
-  .speaker-kicker{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.4)}
-  .speaker-nm{font-size:14px;font-weight:700;color:#fff;margin-top:3px}
+  .event-speaker{display:flex;align-items:center;gap:10px;padding:14px 0}
+  .speaker-kicker{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 10px;border-radius:99px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.5)}
+  .speaker-nm{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;letter-spacing:-0.01em}
   .timeline-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);margin-top:7px;padding:6px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;display:inline-block}
 
   .event-meta-strip{
@@ -1057,13 +1056,13 @@
         <img src="uploads/photo-1777552359180.jpg" alt="Alexander Anichkin">
       </div>
 
-      <a class="orbit-item" data-idx="0" href="https://miningshop.ru" target="_blank"><div class="orbit-card">miningshop.ru</div></a>
-      <a class="orbit-item" data-idx="1" href="https://shorts.bz" target="_blank"><div class="orbit-card">shorts.bz</div></a>
-      <a class="orbit-item" data-idx="2" href="https://auditka.ru" target="_blank"><div class="orbit-card">auditka.ru</div></a>
-      <a class="orbit-item" data-idx="3" href="https://poiskzemel.ru" target="_blank"><div class="orbit-card">poiskzemel.ru</div></a>
-      <a class="orbit-item" data-idx="4" href="https://balivillas.ai" target="_blank"><div class="orbit-card">balivillas.ai</div></a>
-      <a class="orbit-item" data-idx="5" href="https://filantrop.ru" target="_blank"><div class="orbit-card">filantrop.ru</div></a>
-      <a class="orbit-item" data-idx="6" href="https://moremontessori.ru" target="_blank"><div class="orbit-card">moremontessori.ru</div></a>
+      <a class="orbit-item" data-idx="0" href="https://miningshop.ru" target="_blank" rel="noopener noreferrer"><div class="orbit-card">miningshop.ru</div></a>
+      <a class="orbit-item" data-idx="1" href="https://shorts.bz" target="_blank" rel="noopener noreferrer"><div class="orbit-card">shorts.bz</div></a>
+      <a class="orbit-item" data-idx="2" href="https://auditka.ru" target="_blank" rel="noopener noreferrer"><div class="orbit-card">auditka.ru</div></a>
+      <a class="orbit-item" data-idx="3" href="https://poiskzemel.ru" target="_blank" rel="noopener noreferrer"><div class="orbit-card">poiskzemel.ru</div></a>
+      <a class="orbit-item" data-idx="4" href="https://balivillas.ai" target="_blank" rel="noopener noreferrer"><div class="orbit-card">balivillas.ai</div></a>
+      <a class="orbit-item" data-idx="5" href="https://filantrop.ru" target="_blank" rel="noopener noreferrer"><div class="orbit-card">filantrop.ru</div></a>
+      <a class="orbit-item" data-idx="6" href="https://moremontessori.ru" target="_blank" rel="noopener noreferrer"><div class="orbit-card">moremontessori.ru</div></a>
     </div>
 
     <div class="identity">
@@ -1269,11 +1268,8 @@
         <div class="event-divider"></div>
 
         <div class="event-speaker">
-          <img src="uploads/photo-1777552359180.jpg" class="speaker-photo" alt="">
-          <div>
-            <div class="speaker-kicker">Speaker</div>
-            <div class="speaker-nm">Aleksandr Anichkin</div>
-          </div>
+          <span class="speaker-kicker">Speaker</span>
+          <span class="speaker-nm">Aleksandr Anichkin</span>
         </div>
 
         <div class="event-meta-strip">
@@ -1470,16 +1466,17 @@
 <script>
   // ── NOW PLAYING ──
   document.addEventListener('DOMContentLoaded', () => {
-    const np    = document.getElementById('nowPlaying');
-    const btn   = document.getElementById('npBtn');
-    const audio = document.getElementById('npAudio');
-    const timeEl= document.getElementById('npTime');
+    const np      = document.getElementById('nowPlaying');
+    const btn     = document.getElementById('npBtn');
+    const audio   = document.getElementById('npAudio');
+    const timeEl  = document.getElementById('npTime');
     const bgRect  = document.getElementById('npBorderBg');
     const fillRect= document.getElementById('npBorderFill');
     const dot     = document.getElementById('npDot');
+    const hitRect = document.getElementById('npBorderHit');
     if (!np || !btn || !audio) return;
 
-    // play / pause
+    // ── play / pause ──
     btn.addEventListener('click', () => {
       if (audio.paused) {
         const p = audio.play();
@@ -1491,12 +1488,22 @@
 
     const fmt = s => Math.floor(s/60) + ':' + String(Math.floor(s%60)).padStart(2,'0');
 
-    // border progress
+    // ── localStorage: save & restore position ──
+    const LS_KEY = 'np_t';
+    const savePos = () => { if (audio.currentTime > 1) localStorage.setItem(LS_KEY, audio.currentTime); };
+    audio.addEventListener('loadedmetadata', () => {
+      const t = parseFloat(localStorage.getItem(LS_KEY) || '0');
+      if (t > 1 && t < audio.duration - 2) audio.currentTime = t;
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) savePos(); });
+    window.addEventListener('beforeunload', savePos);
+
+    // ── border progress ──
     let W, H, P, seeking = false;
 
     function initBorder() {
       W = window.innerWidth; H = window.innerHeight; P = 2*(W+H);
-      [bgRect, fillRect].forEach(el => {
+      [bgRect, fillRect, hitRect].forEach(el => {
         if (!el) return;
         el.setAttribute('x',1); el.setAttribute('y',1);
         el.setAttribute('width', W-2); el.setAttribute('height', H-2);
@@ -1506,15 +1513,14 @@
 
     function setProgress(progress) {
       if (!fillRect) return;
-      const drawn = progress * P;
-      fillRect.setAttribute('stroke-dasharray', drawn + ' ' + P);
+      fillRect.setAttribute('stroke-dasharray', (progress * P) + ' ' + P);
       if (!dot) return;
       const pos = progress * P;
       let x, y;
-      if      (pos <= W)       { x = pos;           y = 0; }
-      else if (pos <= W+H)     { x = W;             y = pos-W; }
-      else if (pos <= 2*W+H)   { x = W-(pos-W-H);  y = H; }
-      else                     { x = 0;             y = H-(pos-2*W-H); }
+      if      (pos <= W)     { x = pos;          y = 0; }
+      else if (pos <= W+H)   { x = W;            y = pos-W; }
+      else if (pos <= 2*W+H) { x = W-(pos-W-H); y = H; }
+      else                   { x = 0;            y = H-(pos-2*W-H); }
       dot.setAttribute('cx', x); dot.setAttribute('cy', y);
       dot.style.opacity = progress > 0.001 ? '1' : '0';
     }
@@ -1522,14 +1528,18 @@
     function perimPos(cx, cy) {
       const dT=cy, dR=W-cx, dB=H-cy, dL=cx;
       const m = Math.min(dT,dR,dB,dL);
-      if (m===dT) return cx/P;
-      if (m===dR) return (W+cy)/P;
-      if (m===dB) return (W+H+W-cx)/P;
-      return (2*W+H+H-cy)/P;
+      if (m===dT) return Math.max(0, Math.min(1, cx/P));
+      if (m===dR) return Math.max(0, Math.min(1, (W+cy)/P));
+      if (m===dB) return Math.max(0, Math.min(1, (W+H+W-cx)/P));
+      return Math.max(0, Math.min(1, (2*W+H+H-cy)/P));
     }
 
-    const EDGE = 14;
-    const nearEdge = (cx,cy) => cx<=EDGE || cx>=W-EDGE || cy<=EDGE || cy>=H-EDGE;
+    function applySeek(cx, cy) {
+      const p = perimPos(cx, cy);
+      if (audio.duration) audio.currentTime = p * audio.duration;
+      setProgress(p);
+      if (timeEl) timeEl.textContent = fmt(audio.currentTime);
+    }
 
     audio.addEventListener('timeupdate', () => {
       if (!audio.duration || seeking) return;
@@ -1537,43 +1547,33 @@
       if (timeEl) timeEl.textContent = fmt(audio.currentTime);
     });
 
-    document.addEventListener('mousemove', e => {
-      document.body.style.cursor = nearEdge(e.clientX,e.clientY) ? 'ew-resize' : '';
-      if (!seeking || !audio.duration) return;
-      const p = perimPos(e.clientX, e.clientY);
-      audio.currentTime = p * audio.duration;
-      setProgress(p);
-      if (timeEl) timeEl.textContent = fmt(audio.currentTime);
-    });
-    document.addEventListener('mousedown', e => {
-      if (!nearEdge(e.clientX,e.clientY)) return;
-      seeking = true;
-      if (!audio.duration) return;
-      const p = perimPos(e.clientX,e.clientY);
-      audio.currentTime = p * audio.duration;
-      setProgress(p);
-      e.preventDefault();
-    });
-    document.addEventListener('mouseup', () => { seeking = false; });
+    // ── drag seek via SVG hit area ──
+    if (hitRect) {
+      hitRect.addEventListener('mousedown', e => {
+        seeking = true;
+        document.body.style.cursor = 'grabbing';
+        applySeek(e.clientX, e.clientY);
+        e.preventDefault();
+      });
+      hitRect.addEventListener('touchstart', e => {
+        seeking = true;
+        applySeek(e.touches[0].clientX, e.touches[0].clientY);
+        e.preventDefault();
+      }, {passive:false});
+    }
 
-    document.addEventListener('touchstart', e => {
-      const t = e.touches[0];
-      if (!nearEdge(t.clientX,t.clientY)) return;
-      seeking = true;
-      if (!audio.duration) return;
-      const p = perimPos(t.clientX,t.clientY);
-      audio.currentTime = p * audio.duration;
-      setProgress(p);
-      e.preventDefault();
-    },{passive:false});
+    document.addEventListener('mousemove', e => {
+      if (!seeking) return;
+      applySeek(e.clientX, e.clientY);
+    });
+    document.addEventListener('mouseup', () => {
+      if (seeking) { seeking = false; document.body.style.cursor = ''; }
+    });
     document.addEventListener('touchmove', e => {
-      if (!seeking || !audio.duration) return;
-      const t = e.touches[0];
-      const p = perimPos(t.clientX,t.clientY);
-      audio.currentTime = p * audio.duration;
-      setProgress(p);
+      if (!seeking) return;
+      applySeek(e.touches[0].clientX, e.touches[0].clientY);
       e.preventDefault();
-    },{passive:false});
+    }, {passive:false});
     document.addEventListener('touchend', () => { seeking = false; });
 
     window.addEventListener('resize', () => { initBorder(); setProgress(audio.duration ? audio.currentTime/audio.duration : 0); });
@@ -1593,6 +1593,7 @@
   <rect id="npBorderBg"   fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1.5"/>
   <rect id="npBorderFill" fill="none" stroke="white"                  stroke-width="1.5" filter="url(#npGlow)"/>
   <circle id="npDot" r="3" fill="white" filter="url(#npGlow)" opacity="0"/>
+  <rect id="npBorderHit"  fill="none" stroke="transparent" stroke-width="28" style="pointer-events:stroke;cursor:grab"/>
 </svg>
 
 </body>
