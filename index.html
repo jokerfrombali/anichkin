@@ -235,6 +235,24 @@
     from{transform:translateX(0)}
     to{transform:translateX(-50%)}
   }
+  .np-topbar{
+    position:fixed;top:0;left:0;right:0;height:2px;
+    z-index:9999;cursor:pointer;
+  }
+  .np-topbar-fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.7) 60%,#fff 100%);
+    box-shadow:0 0 8px 1px rgba(255,255,255,0.35);
+    transition:width 0.8s linear;
+    will-change:width;
+  }
+  .np-time{
+    flex:none;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:0.04em;
+    color:rgba(255,255,255,0.35);
+    white-space:nowrap;
+  }
   .name .verified{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
   .role{
     font-size:11px;color:rgba(255,255,255,0.4);
@@ -1080,10 +1098,11 @@
         <div class="np-eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         <div class="np-marquee">
           <div class="np-track">
-            <span class="np-title">◆&nbsp;&nbsp;Aleksandr — Two Lanes&nbsp;&nbsp;·&nbsp;&nbsp;Live Performance (Piano Set)&nbsp;&nbsp;·&nbsp;&nbsp;</span>
-            <span class="np-title" aria-hidden="true">◆&nbsp;&nbsp;Aleksandr — Two Lanes&nbsp;&nbsp;·&nbsp;&nbsp;Live Performance (Piano Set)&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+            <span class="np-title">◆&nbsp;&nbsp;Two Lanes&nbsp;&nbsp;·&nbsp;&nbsp;Live Performance (Piano Set)&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+            <span class="np-title" aria-hidden="true">◆&nbsp;&nbsp;Two Lanes&nbsp;&nbsp;·&nbsp;&nbsp;Live Performance (Piano Set)&nbsp;&nbsp;·&nbsp;&nbsp;</span>
           </div>
         </div>
+        <span class="np-time" id="npTime">0:00</span>
         <audio id="npAudio" preload="none" loop>
           <!-- замени src на свой файл: track.mp3 -->
           <source src="track.mp3" type="audio/mpeg">
@@ -1463,8 +1482,34 @@
       np.classList.remove('playing');
       btn.setAttribute('aria-label','play');
     });
+
+    const fill = document.getElementById('npFill');
+    const timeEl = document.getElementById('npTime');
+    const topbar = document.getElementById('npTopbar');
+
+    const fmt = s => {
+      const m = Math.floor(s / 60);
+      return m + ':' + String(Math.floor(s % 60)).padStart(2,'0');
+    };
+
+    audio.addEventListener('timeupdate', () => {
+      if (!audio.duration) return;
+      const pct = (audio.currentTime / audio.duration) * 100;
+      if (fill) fill.style.width = pct + '%';
+      if (timeEl) timeEl.textContent = fmt(audio.currentTime);
+    });
+
+    if (topbar) {
+      topbar.addEventListener('click', e => {
+        if (!audio.duration) return;
+        const r = topbar.getBoundingClientRect();
+        audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+      });
+    }
   });
 </script>
+
+<div class="np-topbar" id="npTopbar"><div class="np-topbar-fill" id="npFill"></div></div>
 
 </body>
 </html>
