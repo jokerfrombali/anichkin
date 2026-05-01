@@ -161,14 +161,17 @@
   .now-playing{
     display:flex;align-items:center;gap:10px;
     margin-top:14px;width:100%;max-width:420px;
-    padding:8px 14px 8px 8px;
+    padding:8px 14px 12px 8px;
     border-radius:99px;
     background:rgba(255,255,255,0.04);
     border:1px solid rgba(255,255,255,0.08);
     backdrop-filter:blur(10px);
     overflow:hidden;
+    position:relative;
     transition:border-color 0.3s, background 0.3s;
   }
+  .np-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.07);cursor:pointer}
+  .np-bar-fill{height:100%;width:0%;background:#fff;border-radius:0;pointer-events:none;transition:width 0.4s linear}
   .now-playing.playing{
     border-color:rgba(255,255,255,0.28);
     background:rgba(255,255,255,0.06);
@@ -323,9 +326,9 @@
 
   .event-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);margin:24px 0}
 
-  .event-speaker{display:flex;align-items:center;gap:10px;padding:14px 0}
-  .speaker-kicker{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 10px;border-radius:99px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.5)}
-  .speaker-nm{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;letter-spacing:-0.01em}
+  .event-speaker{padding:16px 0 10px}
+  .speaker-kicker{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-bottom:6px}
+  .speaker-nm{font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1}
   .timeline-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);margin-top:7px;padding:6px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;display:inline-block}
 
   .event-meta-strip{
@@ -1102,9 +1105,9 @@
         </div>
         <span class="np-time" id="npTime">0:00</span>
         <audio id="npAudio" preload="none" loop>
-          <!-- замени src на свой файл: track.mp3 -->
           <source src="track.mp3" type="audio/mpeg">
         </audio>
+        <div class="np-bar" id="npBar"><div class="np-bar-fill" id="npBarFill"></div></div>
       </div>
     </div>
   </div>
@@ -1268,8 +1271,8 @@
         <div class="event-divider"></div>
 
         <div class="event-speaker">
-          <span class="speaker-kicker">Speaker</span>
-          <span class="speaker-nm">Aleksandr Anichkin</span>
+          <div class="speaker-kicker">Speaker</div>
+          <div class="speaker-nm">Aleksandr Anichkin</div>
         </div>
 
         <div class="event-meta-strip">
@@ -1474,6 +1477,8 @@
     const fillRect= document.getElementById('npBorderFill');
     const dot     = document.getElementById('npDot');
     const hitRect = document.getElementById('npBorderHit');
+    const npBar   = document.getElementById('npBar');
+    const npBarFill = document.getElementById('npBarFill');
     if (!np || !btn || !audio) return;
 
     // ── play / pause ──
@@ -1512,6 +1517,7 @@
     }
 
     function setProgress(progress) {
+      if (npBarFill) npBarFill.style.width = (progress * 100) + '%';
       if (!fillRect) return;
       fillRect.setAttribute('stroke-dasharray', (progress * P) + ' ' + P);
       if (!dot) return;
@@ -1576,6 +1582,17 @@
     }, {passive:false});
     document.addEventListener('touchend', () => { seeking = false; });
 
+    if (npBar) {
+      npBar.addEventListener('click', e => {
+        if (!audio.duration) return;
+        const r = npBar.getBoundingClientRect();
+        const p = (e.clientX - r.left) / r.width;
+        audio.currentTime = p * audio.duration;
+        setProgress(p);
+        if (timeEl) timeEl.textContent = fmt(audio.currentTime);
+      });
+    }
+
     window.addEventListener('resize', () => { initBorder(); setProgress(audio.duration ? audio.currentTime/audio.duration : 0); });
 
     initBorder();
@@ -1591,8 +1608,8 @@
     </filter>
   </defs>
   <rect id="npBorderBg"   fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1.5"/>
-  <rect id="npBorderFill" fill="none" stroke="white"                  stroke-width="1.5" filter="url(#npGlow)"/>
-  <circle id="npDot" r="3" fill="white" filter="url(#npGlow)" opacity="0"/>
+  <rect id="npBorderFill" fill="none" stroke="white"                  stroke-width="3" filter="url(#npGlow)"/>
+  <circle id="npDot" r="4" fill="white" filter="url(#npGlow)" opacity="0"/>
   <rect id="npBorderHit"  fill="none" stroke="transparent" stroke-width="28" style="pointer-events:stroke;cursor:grab"/>
 </svg>
 
