@@ -323,8 +323,14 @@
 
   .event-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);margin:24px 0}
 
+  .event-speaker{display:flex;align-items:center;gap:12px;padding:14px 0}
+  .speaker-photo{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.18);flex:none}
+  .speaker-kicker{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.4)}
+  .speaker-nm{font-size:14px;font-weight:700;color:#fff;margin-top:3px}
+  .timeline-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);margin-top:7px;padding:6px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;display:inline-block}
+
   .event-meta-strip{
-    display:grid;grid-template-columns:repeat(3,1fr);
+    display:grid;grid-template-columns:repeat(4,1fr);
     background:rgba(255,255,255,0.03);
     border:1px solid rgba(255,255,255,0.08);
     border-radius:18px;overflow:hidden;
@@ -752,7 +758,7 @@
   /* META — replace 3-col strip */
   body.brutal .event-meta-strip{
     margin:0;border-radius:0;border:none;background:#fff;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(4,1fr);
     border-bottom:1.5px solid #000;
     box-shadow:none;gap:0;
   }
@@ -1262,6 +1268,14 @@
 
         <div class="event-divider"></div>
 
+        <div class="event-speaker">
+          <img src="uploads/photo-1777552359180.jpg" class="speaker-photo" alt="">
+          <div>
+            <div class="speaker-kicker">Speaker</div>
+            <div class="speaker-nm">Aleksandr Anichkin</div>
+          </div>
+        </div>
+
         <div class="event-meta-strip">
           <div class="event-meta-cell">
             <div class="k">When</div>
@@ -1277,6 +1291,11 @@
             <div class="k">Format</div>
             <div class="v">Weekly drop + workshop</div>
             <div class="vs">EN · RU</div>
+          </div>
+          <div class="event-meta-cell">
+            <div class="k">Price</div>
+            <div class="v">Free</div>
+            <div class="vs">участие бесплатно</div>
           </div>
         </div>
 
@@ -1303,6 +1322,7 @@
               <div class="timeline-time">12:00 — 16:00</div>
               <div class="timeline-title">Hands-on: собираем агента под свою задачу</div>
               <div class="timeline-desc">Берём один из свежих инструментов и внедряем в живой процесс: автоматизация, лиды, контент, внутренние процессы. Без кода. Уходишь с рабочим агентом на неделю вперёд.</div>
+              <div class="timeline-note">💻 Возьми ноутбук — пригодится на воркшопе</div>
               <div class="timeline-pills">
                 <span class="timeline-pill limited">20 мест</span>
                 <span class="timeline-pill">Claude Code</span>
