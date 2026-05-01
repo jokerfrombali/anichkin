@@ -67,14 +67,16 @@
   .profile-photo{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:42%;aspect-ratio:1/1;border-radius:50%;overflow:hidden;
-    border:3px solid rgba(255,255,255,0.08);
+    border:0;
+    clip-path:circle(50% at 50% 50%);
+    background:#07070d;
     box-shadow:
-      0 0 0 1px rgba(255,255,255,0.04),
+      0 0 0 1px rgba(255,255,255,0.10),
       0 30px 80px rgba(139,92,255,0.35),
       0 0 120px rgba(255,78,193,0.2);
     z-index:10;
   }
-  .profile-photo img{width:100%;height:100%;object-fit:cover;object-position:center 12%}
+  .profile-photo img{width:100%;height:100%;object-fit:cover;object-position:center 12%;transform:scale(1.08);transform-origin:center 18%}
 
   /* glow ring behind photo */
   .ring{
@@ -1036,6 +1038,7 @@
     .orbit-stage{max-width:none;width:100%}
 
     .profile-photo{width:46%}
+    .profile-photo img{object-position:center 16%;transform:scale(1.14)}
 
     /* identity */
     .name{font-size:26px;letter-spacing:-0.03em;gap:8px;flex-wrap:wrap;justify-content:center}
@@ -1250,18 +1253,21 @@
   @media (max-width:420px){
     .name{font-size:22px}
     .orbit-card{padding:6px 9px;font-size:10px;border-radius:10px}
-    .profile-photo{width:48%}
+    .profile-photo{width:48%;box-shadow:0 0 0 1px rgba(255,255,255,0.09),0 22px 62px rgba(139,92,255,0.38),0 0 92px rgba(255,78,193,0.24)}
     .cta-row{width:100%;flex-direction:column}
     .cta-row .btn{width:100%;justify-content:center}
     .now-playing{
       width:100%;
       max-width:420px;
-      gap:10px;
-      padding:8px 14px 12px 8px;
+      height:52px;
+      gap:8px;
+      padding:6px 10px 6px 6px;
     }
-    .np-btn{width:32px;height:32px}
-    .np-title{font-size:11px;letter-spacing:0.06em}
+    .np-btn{width:40px;height:40px}
+    .np-eq{width:12px}
+    .np-title{font-size:10px;letter-spacing:0.05em}
     .np-time{font-size:10px}
+    .np-bar{left:54px;right:12px;height:2px}
     .event-grid{grid-template-columns:1fr}
     .event-title{font-size:20px}
   }
@@ -1333,7 +1339,7 @@
           </div>
         </div>
         <span class="np-time" id="npTime">0:00</span>
-        <audio id="npAudio" preload="metadata" loop>
+        <audio id="npAudio" preload="none" loop>
           <source src="track.mp3" type="audio/mpeg">
         </audio>
         <div class="np-bar" id="npBar"><div class="np-bar-fill" id="npBarFill"></div></div>
@@ -1713,9 +1719,16 @@
     const npBarFill = document.getElementById('npBarFill');
     if (!np || !btn || !audio) return;
 
+    const isMobileAudio = window.matchMedia('(max-width: 760px)').matches;
+    if (isMobileAudio) {
+      audio.src = 'track-mobile.mp3';
+      audio.preload = 'none';
+    }
+
     // ── play / pause ──
     btn.addEventListener('click', () => {
       if (audio.paused) {
+        if (audio.readyState === 0) audio.load();
         audio.play().catch(() => {});
       } else {
         audio.pause();
