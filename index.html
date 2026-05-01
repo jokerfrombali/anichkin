@@ -784,6 +784,54 @@
   body.brutal .event-meta-cell .v{color:#000 !important;font-size:18px !important;font-weight:800 !important;letter-spacing:-0.02em !important;margin-top:8px !important}
   body.brutal .event-meta-cell .vs{color:#666 !important;font-size:11px !important;margin-top:4px !important}
 
+  body.brutal .event-speaker{
+    position:relative;z-index:2;
+    display:grid;grid-template-columns:auto 1fr;align-items:end;gap:18px;
+    padding:22px 60px 24px;
+    background:#f4f1ea;
+    border-bottom:1.5px solid #000;
+  }
+  body.brutal .event-speaker::before{
+    content:'';position:absolute;left:60px;right:60px;top:0;
+    height:1.5px;background:#000;
+  }
+  body.brutal .speaker-kicker{
+    margin:0;
+    padding:7px 10px;
+    border:1.5px solid #000;
+    background:#000;
+    color:#f4f1ea;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.2em;
+    line-height:1;
+    text-transform:uppercase;
+  }
+  body.brutal .speaker-nm{
+    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    color:#000;
+    font-family:'Manrope',sans-serif;
+    font-size:34px;
+    font-weight:800;
+    line-height:0.9;
+    letter-spacing:-0.055em;
+  }
+  body.brutal .speaker-nm .speaker-first{
+    font-weight:500;
+    letter-spacing:-0.04em;
+  }
+  body.brutal .speaker-nm .speaker-last{
+    display:inline-block;
+    padding:2px 10px 6px;
+    background:#ff3b30;
+    color:#fff;
+    border:1.5px solid #000;
+    box-shadow:4px 4px 0 #000;
+    transform:rotate(-1.5deg);
+    letter-spacing:-0.045em;
+  }
+
   /* DEPARTURES BOARD timeline */
   body.brutal .event-timeline{
     margin:0;padding:0;
@@ -1100,6 +1148,29 @@
     }
     body.brutal .event-meta-cell:nth-last-child(-n+2){
       border-bottom:none !important;
+    }
+    body.brutal .event-speaker{
+      grid-template-columns:1fr;
+      align-items:start;
+      gap:12px;
+      padding:18px;
+    }
+    body.brutal .event-speaker::before{
+      left:18px;
+      right:18px;
+    }
+    body.brutal .speaker-kicker{
+      width:max-content;
+      font-size:9px;
+      letter-spacing:0.16em;
+    }
+    body.brutal .speaker-nm{
+      font-size:28px;
+      gap:8px;
+    }
+    body.brutal .speaker-nm .speaker-last{
+      padding:2px 8px 5px;
+      box-shadow:3px 3px 0 #000;
     }
     body.brutal .event-timeline .deps-head{
       padding:12px 18px;
@@ -1430,7 +1501,7 @@
 
         <div class="event-speaker">
           <div class="speaker-kicker">Speaker</div>
-          <div class="speaker-nm">Aleksandr Anichkin</div>
+          <div class="speaker-nm"><span class="speaker-first">Aleksandr</span><span class="speaker-last">Anichkin</span></div>
         </div>
 
         <div class="event-meta-strip">
