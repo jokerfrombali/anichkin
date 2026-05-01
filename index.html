@@ -235,16 +235,9 @@
     from{transform:translateX(0)}
     to{transform:translateX(-50%)}
   }
-  .np-topbar{
-    position:fixed;top:0;left:0;right:0;height:2px;
-    z-index:9999;cursor:pointer;
-  }
-  .np-topbar-fill{
-    height:100%;width:0%;
-    background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.7) 60%,#fff 100%);
-    box-shadow:0 0 8px 1px rgba(255,255,255,0.35);
-    transition:width 0.8s linear;
-    will-change:width;
+  #npBorder{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    pointer-events:none;z-index:9999;overflow:visible;
   }
   .np-time{
     flex:none;
@@ -1455,61 +1448,132 @@
 </script>
 
 <script>
-  // ── NOW PLAYING (audio toggle) ──
+  // ── NOW PLAYING ──
   document.addEventListener('DOMContentLoaded', () => {
-    const np = document.getElementById('nowPlaying');
-    const btn = document.getElementById('npBtn');
+    const np    = document.getElementById('nowPlaying');
+    const btn   = document.getElementById('npBtn');
     const audio = document.getElementById('npAudio');
+    const timeEl= document.getElementById('npTime');
+    const bgRect  = document.getElementById('npBorderBg');
+    const fillRect= document.getElementById('npBorderFill');
+    const dot     = document.getElementById('npDot');
     if (!np || !btn || !audio) return;
 
+    // play / pause
     btn.addEventListener('click', () => {
       if (audio.paused) {
         const p = audio.play();
-        if (p && p.catch) p.catch(() => {
-          // если файла нет — всё равно показываем визуальное проигрывание (для превью)
-          np.classList.add('playing');
-          btn.setAttribute('aria-label','pause');
-        });
-      } else {
-        audio.pause();
-      }
+        if (p && p.catch) p.catch(() => { np.classList.add('playing'); btn.setAttribute('aria-label','pause'); });
+      } else { audio.pause(); }
     });
-    audio.addEventListener('play', () => {
-      np.classList.add('playing');
-      btn.setAttribute('aria-label','pause');
-    });
-    audio.addEventListener('pause', () => {
-      np.classList.remove('playing');
-      btn.setAttribute('aria-label','play');
-    });
+    audio.addEventListener('play',  () => { np.classList.add('playing');    btn.setAttribute('aria-label','pause'); });
+    audio.addEventListener('pause', () => { np.classList.remove('playing'); btn.setAttribute('aria-label','play');  });
 
-    const fill = document.getElementById('npFill');
-    const timeEl = document.getElementById('npTime');
-    const topbar = document.getElementById('npTopbar');
+    const fmt = s => Math.floor(s/60) + ':' + String(Math.floor(s%60)).padStart(2,'0');
 
-    const fmt = s => {
-      const m = Math.floor(s / 60);
-      return m + ':' + String(Math.floor(s % 60)).padStart(2,'0');
-    };
+    // border progress
+    let W, H, P, seeking = false;
+
+    function initBorder() {
+      W = window.innerWidth; H = window.innerHeight; P = 2*(W+H);
+      [bgRect, fillRect].forEach(el => {
+        if (!el) return;
+        el.setAttribute('x',1); el.setAttribute('y',1);
+        el.setAttribute('width', W-2); el.setAttribute('height', H-2);
+      });
+      if (bgRect) bgRect.setAttribute('stroke-dasharray', P);
+    }
+
+    function setProgress(progress) {
+      if (!fillRect) return;
+      const drawn = progress * P;
+      fillRect.setAttribute('stroke-dasharray', drawn + ' ' + P);
+      if (!dot) return;
+      const pos = progress * P;
+      let x, y;
+      if      (pos <= W)       { x = pos;           y = 0; }
+      else if (pos <= W+H)     { x = W;             y = pos-W; }
+      else if (pos <= 2*W+H)   { x = W-(pos-W-H);  y = H; }
+      else                     { x = 0;             y = H-(pos-2*W-H); }
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+      dot.style.opacity = progress > 0.001 ? '1' : '0';
+    }
+
+    function perimPos(cx, cy) {
+      const dT=cy, dR=W-cx, dB=H-cy, dL=cx;
+      const m = Math.min(dT,dR,dB,dL);
+      if (m===dT) return cx/P;
+      if (m===dR) return (W+cy)/P;
+      if (m===dB) return (W+H+W-cx)/P;
+      return (2*W+H+H-cy)/P;
+    }
+
+    const EDGE = 14;
+    const nearEdge = (cx,cy) => cx<=EDGE || cx>=W-EDGE || cy<=EDGE || cy>=H-EDGE;
 
     audio.addEventListener('timeupdate', () => {
-      if (!audio.duration) return;
-      const pct = (audio.currentTime / audio.duration) * 100;
-      if (fill) fill.style.width = pct + '%';
+      if (!audio.duration || seeking) return;
+      setProgress(audio.currentTime / audio.duration);
       if (timeEl) timeEl.textContent = fmt(audio.currentTime);
     });
 
-    if (topbar) {
-      topbar.addEventListener('click', e => {
-        if (!audio.duration) return;
-        const r = topbar.getBoundingClientRect();
-        audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
-      });
-    }
+    document.addEventListener('mousemove', e => {
+      document.body.style.cursor = nearEdge(e.clientX,e.clientY) ? 'ew-resize' : '';
+      if (!seeking || !audio.duration) return;
+      const p = perimPos(e.clientX, e.clientY);
+      audio.currentTime = p * audio.duration;
+      setProgress(p);
+      if (timeEl) timeEl.textContent = fmt(audio.currentTime);
+    });
+    document.addEventListener('mousedown', e => {
+      if (!nearEdge(e.clientX,e.clientY)) return;
+      seeking = true;
+      if (!audio.duration) return;
+      const p = perimPos(e.clientX,e.clientY);
+      audio.currentTime = p * audio.duration;
+      setProgress(p);
+      e.preventDefault();
+    });
+    document.addEventListener('mouseup', () => { seeking = false; });
+
+    document.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      if (!nearEdge(t.clientX,t.clientY)) return;
+      seeking = true;
+      if (!audio.duration) return;
+      const p = perimPos(t.clientX,t.clientY);
+      audio.currentTime = p * audio.duration;
+      setProgress(p);
+      e.preventDefault();
+    },{passive:false});
+    document.addEventListener('touchmove', e => {
+      if (!seeking || !audio.duration) return;
+      const t = e.touches[0];
+      const p = perimPos(t.clientX,t.clientY);
+      audio.currentTime = p * audio.duration;
+      setProgress(p);
+      e.preventDefault();
+    },{passive:false});
+    document.addEventListener('touchend', () => { seeking = false; });
+
+    window.addEventListener('resize', () => { initBorder(); setProgress(audio.duration ? audio.currentTime/audio.duration : 0); });
+
+    initBorder();
+    setProgress(0);
   });
 </script>
 
-<div class="np-topbar" id="npTopbar"><div class="np-topbar-fill" id="npFill"></div></div>
+<svg id="npBorder" aria-hidden="true">
+  <defs>
+    <filter id="npGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect id="npBorderBg"   fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1.5"/>
+  <rect id="npBorderFill" fill="none" stroke="white"                  stroke-width="1.5" filter="url(#npGlow)"/>
+  <circle id="npDot" r="3" fill="white" filter="url(#npGlow)" opacity="0"/>
+</svg>
 
 </body>
 </html>
