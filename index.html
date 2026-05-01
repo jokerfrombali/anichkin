@@ -1262,7 +1262,7 @@
           </div>
         </div>
         <span class="np-time" id="npTime">0:00</span>
-        <audio id="npAudio" preload="none" loop>
+        <audio id="npAudio" preload="metadata" loop>
           <source src="track.mp3" type="audio/mpeg">
         </audio>
         <div class="np-bar" id="npBar"><div class="np-bar-fill" id="npBarFill"></div></div>
@@ -1645,9 +1645,10 @@
     // ── play / pause ──
     btn.addEventListener('click', () => {
       if (audio.paused) {
-        const p = audio.play();
-        if (p && p.catch) p.catch(() => { np.classList.add('playing'); btn.setAttribute('aria-label','pause'); });
-      } else { audio.pause(); }
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
     });
     audio.addEventListener('play',  () => { np.classList.add('playing');    btn.setAttribute('aria-label','pause'); });
     audio.addEventListener('pause', () => { np.classList.remove('playing'); btn.setAttribute('aria-label','play');  });
@@ -1658,6 +1659,7 @@
     const LS_KEY = 'np_t';
     const savePos = () => { if (audio.currentTime > 1) localStorage.setItem(LS_KEY, audio.currentTime); };
     audio.addEventListener('loadedmetadata', () => {
+      if (!audio.paused) return; // не трогаем если уже запускается play()
       const t = parseFloat(localStorage.getItem(LS_KEY) || '0');
       if (t > 1 && t < audio.duration - 2) audio.currentTime = t;
     });
